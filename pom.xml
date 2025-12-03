@@ -14,14 +14,14 @@
     <!--change artefact id-->
     <!-- Координаты проекта -->
     <groupId>io.hohichh.marketplace</groupId>
-    <artifactId>template</artifactId>
+    <artifactId>paymnent</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging> <!-- Упаковка проекта в JAR-файл -->
 
     <!--change name-->
     <!-- Информация о проекте -->
-    <name>service-template</name>
-    <description>user management app</description>
+    <name>payment-service</name>
+    <description>payment management app</description>
 
     <!--    change project name!!!-->
     <!-- Свойства проекта -->
@@ -29,7 +29,7 @@
         <java.version>22</java.version> <!-- Версия Java, используемая в проекте -->
         <!-- Настройки для SonarQube - платформы для анализа качества кода -->
         <sonar.organization>marketplace-internship-project</sonar.organization>
-        <sonar.projectKey>Marketplace-internship-project_service-template</sonar.projectKey>
+        <sonar.projectKey>Marketplace-internship-project_payment-service</sonar.projectKey>
         <sonar.coverage.jacoco.xmlReportPaths>
             ${project.reporting.outputDirectory}/jacoco/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
@@ -68,25 +68,25 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId> <!-- Стартер для работы с JPA (Java Persistence API), включая Hibernate. -->
         </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId> <!-- JDBC-драйвер для подключения к базе данных PostgreSQL. -->
-            <scope>runtime</scope> <!-- Зависимость необходима только во время выполнения. -->
-        </dependency>
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId> <!-- Инструмент для управления миграциями схемы базы данных. -->
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.postgresql</groupId>-->
+<!--            <artifactId>postgresql</artifactId> &lt;!&ndash; JDBC-драйвер для подключения к базе данных PostgreSQL. &ndash;&gt;-->
+<!--            <scope>runtime</scope> &lt;!&ndash; Зависимость необходима только во время выполнения. &ndash;&gt;-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.liquibase</groupId>-->
+<!--            <artifactId>liquibase-core</artifactId> &lt;!&ndash; Инструмент для управления миграциями схемы базы данных. &ndash;&gt;-->
+<!--        </dependency>-->
 
         <!-- Зависимости для кэширования -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-cache</artifactId> <!-- Стартер для поддержки кэширования в Spring. -->
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId> <!-- Стартер для интеграции с Redis, используемого в качестве хранилища кэша. -->
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-cache</artifactId> &lt;!&ndash; Стартер для поддержки кэширования в Spring. &ndash;&gt;-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-data-redis</artifactId> &lt;!&ndash; Стартер для интеграции с Redis, используемого в качестве хранилища кэша. &ndash;&gt;-->
+<!--        </dependency>-->
 
         <!-- Утилиты для разработки -->
         <dependency>
@@ -123,11 +123,11 @@
             <artifactId>spring-boot-starter-test</artifactId> <!-- Основной стартер для тестирования Spring Boot приложений. Включает JUnit, Mockito и другие полезные библиотеки. -->
             <scope>test</scope> <!-- Зависимость используется только для тестирования. -->
         </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId> <!-- Встраиваемая база данных in-memory, удобная для тестов. -->
-            <scope>test</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.h2database</groupId>-->
+<!--            <artifactId>h2</artifactId> &lt;!&ndash; Встраиваемая база данных in-memory, удобная для тестов. &ndash;&gt;-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId> <!-- Простая реализация SLF4J для логирования в тестах. -->
@@ -153,12 +153,12 @@
             <version>1.19.8</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId> <!-- Модуль Testcontainers для запуска контейнеров с PostgreSQL. -->
-            <version>1.19.8</version>
-            <scope>test</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.testcontainers</groupId>-->
+<!--            <artifactId>postgresql</artifactId> &lt;!&ndash; Модуль Testcontainers для запуска контейнеров с PostgreSQL. &ndash;&gt;-->
+<!--            <version>1.19.8</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
 
     </dependencies>
 
