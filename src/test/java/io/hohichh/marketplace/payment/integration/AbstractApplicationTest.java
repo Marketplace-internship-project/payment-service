@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.hohichh.marketplace.payment.integration.config.TestClockConfiguration;
-import io.hohichh.marketplace.payment.integration.config.TestContainerConfiguration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,8 +22,7 @@ import static org.mockito.Mockito.mock;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Import({
-        TestClockConfiguration.class,
-        TestContainerConfiguration.class
+        TestClockConfiguration.class
 })
 public abstract class AbstractApplicationTest {
 
