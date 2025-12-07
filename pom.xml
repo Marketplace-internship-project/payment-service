@@ -66,8 +66,12 @@
         <!-- Зависимости для работы с базой данных -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId> <!-- Стартер для работы с JPA (Java Persistence API), включая Hibernate. -->
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-data-jpa</artifactId> &lt;!&ndash; Стартер для работы с JPA (Java Persistence API), включая Hibernate. &ndash;&gt;-->
+<!--        </dependency>-->
 <!--        <dependency>-->
 <!--            <groupId>org.postgresql</groupId>-->
 <!--            <artifactId>postgresql</artifactId> &lt;!&ndash; JDBC-драйвер для подключения к базе данных PostgreSQL. &ndash;&gt;-->
