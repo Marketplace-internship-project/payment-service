@@ -1,3 +1,3 @@
 # Service Template
 ---
-Just take and use
+Just take and use!
