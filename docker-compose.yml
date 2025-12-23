@@ -4,20 +4,15 @@ services:
 
   app:
     build: .
-    container_name: marketplace-app
+    container_name: payment-service
     ports:
       - "8080:8080"
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-
-      - SPRING_DATA_MONGODB_URI=mongodb://mongo-db:27017/payment_db
-
-      - SPRING_DATA_REDIS_HOST=redis-cache
-      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILE}
+      - SPRING_DATA_MONGODB_URI=${MONGODB_URI}
+      - EXTERNAL_BANK_API=${EXTERNAL_BANK_API}
     depends_on:
       mongo-db:
-        condition: service_healthy
-      redis-cache:
         condition: service_healthy
 
   mongo-db:
