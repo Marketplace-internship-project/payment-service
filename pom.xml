@@ -84,6 +84,12 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Зависимости для брокеров-->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
         <!-- Зависимости для работы с базой данных -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
