@@ -13,7 +13,7 @@ public class PaymentProducer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public void sendPaymentStatus(PaymentCreatedEvent event) {
+    public void sendPaymentCreatedEvent(PaymentCreatedEvent event) {
         log.info("Sending payment created event for Order: {}, Status: {}", event.orderId(), event.status());
 
         kafkaTemplate.send("payment-events", event.orderId(), event);

@@ -3,6 +3,7 @@ package io.hohichh.marketplace.payment.service;
 import io.hohichh.marketplace.payment.dto.NewPaymentDto;
 import io.hohichh.marketplace.payment.dto.PaymentDto;
 import io.hohichh.marketplace.payment.dto.PaymentSumDto;
+import io.hohichh.marketplace.payment.dto.event.PaymentCreatedEvent;
 import io.hohichh.marketplace.payment.exception.ResourceNotFoundException;
 import io.hohichh.marketplace.payment.kafka.PaymentProducer;
 import io.hohichh.marketplace.payment.mapper.PaymentMapper;
@@ -46,7 +47,6 @@ public class PaymentServiceImpl implements PaymentService {
                 newPaymentDto.orderId(), newPaymentDto.userId(), newPaymentDto.paymentAmount());
 
         Payment payment = paymentMapper.toEntity(newPaymentDto);
-        payment.setTimestamp(LocalDateTime.now(clock));
 
         boolean isSuccess;
         try {
@@ -68,10 +68,16 @@ public class PaymentServiceImpl implements PaymentService {
 
         Status status = isSuccess ? Status.SUCCEED : Status.DECLINED;
         payment.setStatus(status);
-        //todo notify order service
         log.debug("Bank mock check result. Generated status: {}", status);
 
         Payment savedPayment = paymentRepository.save(payment);
+        paymentProducer.sendPaymentCreatedEvent(new PaymentCreatedEvent(
+                savedPayment.getId(),
+                savedPayment.getOrderId(),
+                savedPayment.getUserId(),
+                savedPayment.getStatus(),
+                savedPayment.getTimestamp()
+        ));
 
         log.info("Payment created successfully. ID: {}, Status: {}", savedPayment.getId(), savedPayment.getStatus());
 

@@ -17,6 +17,10 @@ public record PaymentCreatedEvent(
         @NotNull
          String orderId,
 
+        @NotBlank
+        @NotNull
+        String userId,
+
          @NotNull
          Status status,
 
