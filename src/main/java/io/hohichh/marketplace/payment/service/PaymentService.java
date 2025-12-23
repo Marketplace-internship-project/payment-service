@@ -13,6 +13,7 @@ import java.util.List;
 public interface PaymentService {
     PaymentDto createPayment(NewPaymentDto payment);
     void deletePayment(String paymentId);
+    PaymentDto changePaymentStatus(String paymentId, Status newStatus);
     Page<PaymentDto> getPaymentsByOrderId(String orderId, Pageable pageable);
     Page<PaymentDto> getPaymentsByUserId(String userId, Pageable pageable);
     Page<PaymentDto> getPaymentsByStatuses(List<Status> statuses, Pageable pageable);

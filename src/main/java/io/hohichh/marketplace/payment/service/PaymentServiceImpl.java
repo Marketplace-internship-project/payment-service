@@ -3,6 +3,8 @@ package io.hohichh.marketplace.payment.service;
 import io.hohichh.marketplace.payment.dto.NewPaymentDto;
 import io.hohichh.marketplace.payment.dto.PaymentDto;
 import io.hohichh.marketplace.payment.dto.PaymentSumDto;
+import io.hohichh.marketplace.payment.exception.ResourceNotFoundException;
+import io.hohichh.marketplace.payment.kafka.PaymentProducer;
 import io.hohichh.marketplace.payment.mapper.PaymentMapper;
 import io.hohichh.marketplace.payment.model.Payment;
 import io.hohichh.marketplace.payment.model.Status;
@@ -21,7 +23,6 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +36,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Value("${payment.external-bank-api-url}")
     private String externalApiUrl;
+
+    private final PaymentProducer paymentProducer;
 
     @Override
     @Transactional
@@ -65,7 +68,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         Status status = isSuccess ? Status.SUCCEED : Status.DECLINED;
         payment.setStatus(status);
-
+        //todo notify order service
         log.debug("Bank mock check result. Generated status: {}", status);
 
         Payment savedPayment = paymentRepository.save(payment);
@@ -76,13 +79,39 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public void deletePayment(String paymentId) {
         log.info("Request to delete payment with ID: {}", paymentId);
+        if(!paymentRepository.existsById(paymentId)){
+            log.error("Payment with ID: {} not found.", paymentId);
+            throw new ResourceNotFoundException("Payment with ID: " + paymentId + " not found.");
+        }
         paymentRepository.deleteById(paymentId);
         log.info("Payment with ID: {} processed for deletion", paymentId);
     }
 
+
+    @Transactional
     @Override
+    public PaymentDto changePaymentStatus(String paymentId, Status newStatus) {
+        log.info("Changing status for payment {} to {}", paymentId, newStatus);
+
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
+
+        if (payment.getStatus() == Status.DECLINED && newStatus == Status.SUCCEED) {
+            throw new IllegalArgumentException("Cannot succeed a declined payment");
+        }
+
+        payment.setStatus(newStatus);
+        Payment saved = paymentRepository.save(payment);
+        //todo notify order service about refunding/cancelling
+
+        return paymentMapper.toDto(saved);
+    }
+
+    @Override
+    @Transactional
     public Page<PaymentDto> getPaymentsByOrderId(String orderId, Pageable pageable) {
         log.debug("Fetching payments by orderId: {}", orderId);
         Page<Payment> payments = paymentRepository.findByOrderId(orderId, pageable);
@@ -99,6 +128,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public Page<PaymentDto> getPaymentsByStatuses(List<Status> statuses, Pageable pageable) {
         log.debug("Fetching payments by statuses: {}", statuses);
         Page<Payment> payments = paymentRepository.findByStatusIn(statuses, pageable);
@@ -107,6 +137,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public PaymentSumDto getTotalSumByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         log.info("Calculating total sum between {} and {}", startDate, endDate);
 

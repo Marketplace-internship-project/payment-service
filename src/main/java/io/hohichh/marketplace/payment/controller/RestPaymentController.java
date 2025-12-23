@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -29,21 +30,31 @@ public class RestPaymentController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("#newPaymentDto.userId == authentication.principal")
     public PaymentDto createPayment(@RequestBody @Valid NewPaymentDto newPaymentDto) {
         log.info("Received request to create payment");
         return paymentService.createPayment(newPaymentDto);
     }
 
-
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
     public void deletePayment(@PathVariable String id) {
         log.info("Received request to delete payment with ID: {}", id);
         paymentService.deletePayment(id);
     }
 
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public PaymentDto updatePaymentStatus(@PathVariable String id,
+                                          @RequestParam Status status){
+        log.info("Received request to update payment with ID: {}", id);
+        return paymentService.changePaymentStatus(id, status);
+    }
+
 
     @GetMapping("/by-order/{orderId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public Page<PaymentDto> getPaymentsByOrderId(
             @PathVariable String orderId,
             @PageableDefault(size = 20) Pageable pageable) {
@@ -51,6 +62,7 @@ public class RestPaymentController {
     }
 
     @GetMapping("/by-user/{userId}")
+    @PreAuthorize("#userId == authentication.principal or hasRole('ADMIN')")
     public Page<PaymentDto> getPaymentsByUserId(
             @PathVariable String userId,
             @PageableDefault(size = 20) Pageable pageable) {
@@ -58,6 +70,7 @@ public class RestPaymentController {
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasRole('ADMIN')")
     public Page<PaymentDto> getPaymentsByStatuses(
             @RequestParam List<Status> statuses,
             @PageableDefault(size = 20) Pageable pageable) {
@@ -66,6 +79,7 @@ public class RestPaymentController {
 
     // GET /api/payments/summary?from=2023-10-01T00:00:00&to=2023-10-31T23:59:59
     @GetMapping("/summary")
+    @PreAuthorize("hasRole('ADMIN')")
     public PaymentSumDto getSummaryByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to) {
