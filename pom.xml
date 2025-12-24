@@ -168,6 +168,24 @@
 
         <!-- Зависимости для интеграционного тестирования с Testcontainers -->
         <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mongodb</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>kafka</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock-standalone</artifactId>
+            <version>3.3.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-testcontainers</artifactId> <!-- Интеграция Testcontainers со Spring Boot. -->
             <scope>test</scope>
@@ -175,13 +193,12 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId> <!-- Библиотека для запуска Docker-контейнеров из Java-кода, полезная для интеграционных тестов с реальными зависимостями. -->
-            <version>1.19.8</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId> <!-- Интеграция Testcontainers с JUnit 5. -->
-            <version>1.19.8</version>
             <scope>test</scope>
         </dependency>
 <!--        <dependency>-->

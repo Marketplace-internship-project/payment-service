@@ -4,6 +4,7 @@ import io.hohichh.marketplace.payment.dto.NewPaymentDto;
 import io.hohichh.marketplace.payment.dto.PaymentDto;
 import io.hohichh.marketplace.payment.dto.PaymentSumDto;
 import io.hohichh.marketplace.payment.dto.event.PaymentCreatedEvent;
+import io.hohichh.marketplace.payment.exception.ActionNotPermittedException;
 import io.hohichh.marketplace.payment.exception.ResourceCreationConflictException;
 import io.hohichh.marketplace.payment.exception.ResourceNotFoundException;
 import io.hohichh.marketplace.payment.kafka.PaymentProducer;
@@ -96,12 +97,11 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Payment not found"));
 
         if (payment.getStatus() == Status.DECLINED && newStatus == Status.SUCCEED) {
-            throw new IllegalArgumentException("Cannot succeed a declined payment");
+            throw new ActionNotPermittedException("Cannot succeed a declined payment");
         }
 
         payment.setStatus(newStatus);
         Payment saved = paymentRepository.save(payment);
-        //todo notify order service about refunding/cancelling
 
         return paymentMapper.toDto(saved);
     }
