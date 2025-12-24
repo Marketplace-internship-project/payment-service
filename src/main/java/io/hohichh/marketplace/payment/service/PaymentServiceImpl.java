@@ -18,7 +18,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -43,40 +44,38 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentProducer paymentProducer;
 
     @Override
-    @Transactional
     public PaymentDto createPayment(NewPaymentDto newPaymentDto) {
         log.info("Request to create payment for orderId: {}, userId: {}, amount: {}",
                 newPaymentDto.orderId(), newPaymentDto.userId(), newPaymentDto.paymentAmount());
 
         Payment payment = paymentMapper.toEntity(newPaymentDto);
-
-        if(paymentRepository.existsById(payment.getId())) {
-            log.error("Payment with id: {} already exists", payment.getId());
-            throw new ResourceCreationConflictException("Payment with id: " + payment.getId());
-        }
+//
+//        if(paymentRepository.existsById(payment.getId())) {
+//            log.error("Payment with id: {} already exists", payment.getId());
+//            throw new ResourceCreationConflictException("Payment with id: " + payment.getId());
+//        }
 
         Status status = isBankResponseSucceed() ? Status.SUCCEED : Status.DECLINED;
         payment.setStatus(status);
         log.debug("Bank mock check result. Generated status: {}", status);
 
         Payment savedPayment = paymentRepository.save(payment);
+
         paymentProducer.sendPaymentCreatedEvent(new PaymentCreatedEvent(
-                savedPayment.getId(),
-                savedPayment.getOrderId(),
-                savedPayment.getUserId(),
-                savedPayment.getStatus(),
-                savedPayment.getTimestamp()
+                        savedPayment.getId(),
+                        savedPayment.getOrderId(),
+                        savedPayment.getUserId(),
+                        savedPayment.getStatus(),
+                        savedPayment.getTimestamp()
         ));
 
         log.info("Payment created successfully. ID: {}, Status: {}", savedPayment.getId(), savedPayment.getStatus());
-
         return paymentMapper.toDto(savedPayment);
     }
 
 
 
     @Override
-    @Transactional
     public void deletePayment(String paymentId) {
         log.info("Request to delete payment with ID: {}", paymentId);
         if(!paymentRepository.existsById(paymentId)){
@@ -88,7 +87,6 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
 
-    @Transactional
     @Override
     public PaymentDto changePaymentStatus(String paymentId, Status newStatus) {
         log.info("Changing status for payment {} to {}", paymentId, newStatus);
@@ -107,7 +105,23 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    @Transactional
+    public Page<PaymentDto> findPayments(String userId, String orderId, List<Status> statuses, Pageable pageable) {
+        if (userId != null) {
+            return getPaymentsByUserId(userId, pageable);
+        }
+
+        if (orderId != null) {
+            return getPaymentsByOrderId(orderId, pageable);
+        }
+
+        if (statuses != null && !statuses.isEmpty()) {
+            return getPaymentsByStatuses(statuses, pageable);
+        }
+
+        return paymentRepository.findAll(pageable).map(paymentMapper::toDto);
+    }
+
+    @Override
     public Page<PaymentDto> getPaymentsByOrderId(String orderId, Pageable pageable) {
         log.debug("Fetching payments by orderId: {}", orderId);
         Page<Payment> payments = paymentRepository.findByOrderId(orderId, pageable);
@@ -124,7 +138,6 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    @Transactional
     public Page<PaymentDto> getPaymentsByStatuses(List<Status> statuses, Pageable pageable) {
         log.debug("Fetching payments by statuses: {}", statuses);
         Page<Payment> payments = paymentRepository.findByStatusIn(statuses, pageable);
@@ -133,7 +146,6 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    @Transactional
     public PaymentSumDto getTotalSumByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         log.info("Calculating total sum between {} and {}", startDate, endDate);
 

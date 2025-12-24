@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/payments")
+@RequestMapping("/v1/payments")
 @RequiredArgsConstructor
 @Slf4j
 public class RestPaymentController {
@@ -44,7 +44,7 @@ public class RestPaymentController {
         paymentService.deletePayment(id);
     }
 
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public PaymentDto updatePaymentStatus(@PathVariable String id,
                                           @RequestParam Status status){
@@ -53,29 +53,21 @@ public class RestPaymentController {
     }
 
 
-    @GetMapping("/by-order/{orderId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public Page<PaymentDto> getPaymentsByOrderId(
-            @PathVariable String orderId,
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN') or (#userId != null and #userId == authentication.principal)")
+    public Page<PaymentDto> searchPayments(
+            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) String orderId,
+            @RequestParam(required = false) List<Status> statuses,
             @PageableDefault(size = 20) Pageable pageable) {
-        return paymentService.getPaymentsByOrderId(orderId, pageable);
+
+        log.debug("Searching payments with params: userId={}, orderId={}, statuses={}", userId, orderId, statuses);
+
+
+        return paymentService.findPayments(userId, orderId, statuses, pageable);
     }
 
-    @GetMapping("/by-user/{userId}")
-    @PreAuthorize("#userId == authentication.principal or hasRole('ADMIN')")
-    public Page<PaymentDto> getPaymentsByUserId(
-            @PathVariable String userId,
-            @PageableDefault(size = 20) Pageable pageable) {
-        return paymentService.getPaymentsByUserId(userId, pageable);
-    }
 
-    @GetMapping("/search")
-    @PreAuthorize("hasRole('ADMIN')")
-    public Page<PaymentDto> getPaymentsByStatuses(
-            @RequestParam List<Status> statuses,
-            @PageableDefault(size = 20) Pageable pageable) {
-        return paymentService.getPaymentsByStatuses(statuses, pageable);
-    }
 
     // GET /api/payments/summary?from=2023-10-01T00:00:00&to=2023-10-31T23:59:59
     @GetMapping("/summary")

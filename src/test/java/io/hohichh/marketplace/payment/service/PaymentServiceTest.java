@@ -89,7 +89,6 @@ class PaymentServiceTest {
     @Test
     void createPayment_bankResponseSucceed_EvenNumber() {
         when(paymentMapper.toEntity(newPaymentDto)).thenReturn(paymentEntity);
-        when(paymentRepository.existsById(paymentEntity.getId())).thenReturn(false);
         when(restTemplate.getForObject(MOCK_API_URL, Integer[].class)).thenReturn(new Integer[]{42});
         when(paymentRepository.save(any(Payment.class))).thenReturn(paymentEntity);
 
@@ -119,8 +118,6 @@ class PaymentServiceTest {
     void createPayment_bankResponseSucceed_OddNumber() {
 
         when(paymentMapper.toEntity(newPaymentDto)).thenReturn(paymentEntity);
-        when(paymentRepository.existsById(paymentEntity.getId())).thenReturn(false);
-
 
         when(restTemplate.getForObject(MOCK_API_URL, Integer[].class)).thenReturn(new Integer[]{11});
 
@@ -147,8 +144,6 @@ class PaymentServiceTest {
     void createPayment_bankResponseFailed() {
 
         when(paymentMapper.toEntity(newPaymentDto)).thenReturn(paymentEntity);
-        when(paymentRepository.existsById(paymentEntity.getId())).thenReturn(false);
-
 
         when(restTemplate.getForObject(MOCK_API_URL, Integer[].class))
                 .thenThrow(new RestClientException("Service Unavailable"));
@@ -166,18 +161,6 @@ class PaymentServiceTest {
         assertEquals(Status.DECLINED, result.status());
     }
 
-    @Test
-    void createPayment_throwConflictException() {
-        when(paymentMapper.toEntity(newPaymentDto)).thenReturn(paymentEntity);
-        when(paymentRepository.existsById(paymentEntity.getId())).thenReturn(true);
-
-        assertThrows(ResourceCreationConflictException.class, () -> {
-            paymentService.createPayment(newPaymentDto);
-        });
-
-        verify(paymentRepository, never()).save(any());
-        verify(paymentProducer, never()).sendPaymentCreatedEvent(any());
-    }
 
     @Test
     void deletePayment_succeed() {
