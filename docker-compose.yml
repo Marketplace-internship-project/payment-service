@@ -11,6 +11,7 @@ services:
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - SPRING_DATA_MONGODB_URI=${MONGODB_URI}
       - EXTERNAL_BANK_API=${EXTERNAL_BANK_API}
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
     depends_on:
       mongo-db:
         condition: service_healthy
@@ -25,7 +26,7 @@ services:
     volumes:
       - mongo_data:/data/db
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      test: ["CMD", "mongosh", "--host", "127.0.0.1", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -50,6 +51,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
 
       KAFKA_CONTROLLER_CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
 
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0

@@ -23,6 +23,13 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(e.getMessage());
     }
 
+    @ExceptionHandler(ResourceCreationConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleConflict(ResourceCreationConflictException ex) {
+        log.error("ResourceCreationConflictException occurred", ex);
+        return new ErrorResponse(ex.getMessage());
+    }
+
     @ExceptionHandler(ActionNotPermittedException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleActionNotPermitted(ActionNotPermittedException e) {

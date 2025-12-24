@@ -4,6 +4,7 @@ import io.hohichh.marketplace.payment.dto.NewPaymentDto;
 import io.hohichh.marketplace.payment.dto.PaymentDto;
 import io.hohichh.marketplace.payment.dto.PaymentSumDto;
 import io.hohichh.marketplace.payment.dto.event.PaymentCreatedEvent;
+import io.hohichh.marketplace.payment.exception.ResourceCreationConflictException;
 import io.hohichh.marketplace.payment.exception.ResourceNotFoundException;
 import io.hohichh.marketplace.payment.kafka.PaymentProducer;
 import io.hohichh.marketplace.payment.mapper.PaymentMapper;
@@ -48,25 +49,12 @@ public class PaymentServiceImpl implements PaymentService {
 
         Payment payment = paymentMapper.toEntity(newPaymentDto);
 
-        boolean isSuccess;
-        try {
-            log.debug("Calling external bank API at: {}", externalApiUrl);
-            Integer[] response = restTemplate.getForObject(externalApiUrl, Integer[].class);
-
-            if (response != null && response.length > 0) {
-                int randomNumber = response[0];
-                isSuccess = (randomNumber % 2 == 0);
-                log.info("External API returned: {}. Payment success: {}", randomNumber, isSuccess);
-            } else {
-                log.warn("External API returned empty response. Fallback to failure.");
-                isSuccess = false;
-            }
-        } catch (RestClientException e) {
-            log.error("Failed to call external API: {}. Using fallback logic.", e.getMessage());
-            isSuccess = false;
+        if(paymentRepository.existsById(payment.getId())) {
+            log.error("Payment with id: {} already exists", payment.getId());
+            throw new ResourceCreationConflictException("Payment with id: " + payment.getId());
         }
 
-        Status status = isSuccess ? Status.SUCCEED : Status.DECLINED;
+        Status status = isBankResponseSucceed() ? Status.SUCCEED : Status.DECLINED;
         payment.setStatus(status);
         log.debug("Bank mock check result. Generated status: {}", status);
 
@@ -83,6 +71,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         return paymentMapper.toDto(savedPayment);
     }
+
+
 
     @Override
     @Transactional
@@ -156,5 +146,26 @@ public class PaymentServiceImpl implements PaymentService {
                     log.info("No payments found for period. Returning 0.");
                     return new PaymentSumDto(BigDecimal.ZERO);
                 });
+    }
+
+    private boolean isBankResponseSucceed(){
+        boolean isSuccess;
+        try {
+            log.debug("Calling external bank API at: {}", externalApiUrl);
+            Integer[] response = restTemplate.getForObject(externalApiUrl, Integer[].class);
+
+            if (response != null && response.length > 0) {
+                int randomNumber = response[0];
+                isSuccess = (randomNumber % 2 == 0);
+                log.info("External API returned: {}. Payment success: {}", randomNumber, isSuccess);
+            } else {
+                log.warn("External API returned empty response. Fallback to failure.");
+                isSuccess = false;
+            }
+            return isSuccess;
+        } catch (RestClientException e) {
+            log.error("Failed to call external API: {}. Using fallback logic.", e.getMessage());
+            return false;
+        }
     }
 }
