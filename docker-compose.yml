@@ -17,7 +17,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      # Скрипт инициализации баз данных (см. ниже)
       - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
@@ -64,7 +63,7 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
-      # Внутри докера общаемся по kafka:29092, снаружи по localhost:9092
+      
       KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
       KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
       KAFKA_PROCESS_ROLES: 'broker,controller'
@@ -73,7 +72,7 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CONTROLLER_CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
       CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
-      # Одиночный режим (важно для локального запуска)
+      
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -90,9 +89,9 @@ services:
 
   # ====================== MICROSERVICES ======================
   
-  # API GATEWAY (Главный вход - порт 8080)
+  # API GATEWAY
   api-gateway:
-    build: ../api-gateway  # Ищем папку на уровень выше
+    build: ../api-gateway  
     container_name: api-gateway
     ports:
       - "8080:8080"
@@ -172,11 +171,8 @@ services:
 
   # PAYMENT SERVICE (Текущая папка)
   payment-service:
-    build: .  # Билдим текущую папку
+    build: .  
     container_name: payment-service
-    # Если хочешь тестить напрямую мимо гейтвея, используй порт 8084 (8080 занят гейтвеем)
-    # ports:
-    #   - "8084:8080" 
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILE:-docker}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
