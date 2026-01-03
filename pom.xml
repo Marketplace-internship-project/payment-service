@@ -95,6 +95,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
+
 <!--        <dependency>-->
 <!--            <groupId>org.springframework.boot</groupId>-->
 <!--            <artifactId>spring-boot-starter-data-jpa</artifactId> &lt;!&ndash; Стартер для работы с JPA (Java Persistence API), включая Hibernate. &ndash;&gt;-->
@@ -167,6 +168,7 @@
             <artifactId>mongodb</artifactId>
             <scope>test</scope>
         </dependency>
+
 
         <dependency>
             <groupId>org.testcontainers</groupId>

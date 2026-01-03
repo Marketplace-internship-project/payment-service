@@ -3,11 +3,11 @@ package io.hohichh.marketplace.payment;
 import org.springframework.boot.*;
 import org.springframework.boot.autoconfigure.*;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Clock;
+
 
 @SpringBootApplication
 public class Application {

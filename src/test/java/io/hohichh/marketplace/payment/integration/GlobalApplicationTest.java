@@ -189,10 +189,10 @@ class GlobalApplicationTest extends AbstractApplicationTest {
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
 		String body = response.getBody();
-		assertThat(body).contains("my-ord-1");
-		assertThat(body).contains("my-ord-2");
-
-		assertThat(body).doesNotContain("other-ord-1");
+		assertThat(body)
+				.contains("my-ord-1")
+				.contains("my-ord-2")
+				.doesNotContain("other-ord-1");
 	}
 
 	@Test

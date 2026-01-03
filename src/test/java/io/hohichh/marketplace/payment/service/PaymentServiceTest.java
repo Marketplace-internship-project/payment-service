@@ -5,7 +5,6 @@ import io.hohichh.marketplace.payment.dto.PaymentDto;
 import io.hohichh.marketplace.payment.dto.PaymentSumDto;
 import io.hohichh.marketplace.payment.dto.event.PaymentCreatedEvent;
 import io.hohichh.marketplace.payment.exception.ActionNotPermittedException;
-import io.hohichh.marketplace.payment.exception.ResourceCreationConflictException;
 import io.hohichh.marketplace.payment.exception.ResourceNotFoundException;
 import io.hohichh.marketplace.payment.kafka.PaymentProducer;
 import io.hohichh.marketplace.payment.mapper.PaymentMapper;
@@ -49,7 +48,7 @@ class PaymentServiceTest {
 
     @Mock
     private Clock clock;
-    private final LocalDateTime FREEZE_TIME = LocalDateTime.of(2025, 1, 1, 12, 0);
+    private final LocalDateTime freezeTime = LocalDateTime.of(2025, 1, 1, 12, 0);
 
     @Mock
     private PaymentProducer paymentProducer;
@@ -62,7 +61,7 @@ class PaymentServiceTest {
 
     private NewPaymentDto newPaymentDto;
     private Payment paymentEntity;
-    private final String MOCK_API_URL = "http://mock-bank-api.com";
+    private static final String MOCK_API_URL = "http://mock-bank-api.com";
 
     @BeforeEach
     void setUp() {
@@ -73,7 +72,7 @@ class PaymentServiceTest {
                 "order_123",
                 "user_456",
                 Status.PENDING,
-                FREEZE_TIME,
+                freezeTime,
                 new BigDecimal("100.00")
         );
 
@@ -83,7 +82,7 @@ class PaymentServiceTest {
         paymentEntity.setOrderId("order_123");
         paymentEntity.setUserId("user_456");
         paymentEntity.setPaymentAmount(new BigDecimal("100.00"));
-        paymentEntity.setTimestamp(FREEZE_TIME);
+        paymentEntity.setTimestamp(freezeTime);
     }
 
     @Test
@@ -95,7 +94,7 @@ class PaymentServiceTest {
 
         PaymentDto expectedDto = new PaymentDto(
                 paymentEntity.getId(), paymentEntity.getOrderId(), paymentEntity.getUserId(),
-                Status.SUCCEED, FREEZE_TIME, paymentEntity.getPaymentAmount()
+                Status.SUCCEED, freezeTime, paymentEntity.getPaymentAmount()
         );
         when(paymentMapper.toDto(any(Payment.class))).thenReturn(expectedDto);
 
@@ -125,7 +124,7 @@ class PaymentServiceTest {
 
         PaymentDto expectedDto = new PaymentDto(
                 paymentEntity.getId(), paymentEntity.getOrderId(), paymentEntity.getUserId(),
-                Status.DECLINED, FREEZE_TIME, paymentEntity.getPaymentAmount()
+                Status.DECLINED, freezeTime, paymentEntity.getPaymentAmount()
         );
         when(paymentMapper.toDto(any(Payment.class))).thenReturn(expectedDto);
 
@@ -152,7 +151,7 @@ class PaymentServiceTest {
 
         PaymentDto expectedDto = new PaymentDto(
                 paymentEntity.getId(), paymentEntity.getOrderId(), paymentEntity.getUserId(),
-                Status.DECLINED, FREEZE_TIME, paymentEntity.getPaymentAmount()
+                Status.DECLINED, freezeTime, paymentEntity.getPaymentAmount()
         );
         when(paymentMapper.toDto(any(Payment.class))).thenReturn(expectedDto);
 
@@ -203,7 +202,7 @@ class PaymentServiceTest {
         when(paymentRepository.save(any(Payment.class))).thenReturn(updatedPayment);
 
         PaymentDto expectedDto = new PaymentDto(
-                paymentId, "order_1", "user_1", newStatus, FREEZE_TIME, BigDecimal.TEN
+                paymentId, "order_1", "user_1", newStatus, freezeTime, BigDecimal.TEN
         );
         when(paymentMapper.toDto(any(Payment.class))).thenReturn(expectedDto);
 

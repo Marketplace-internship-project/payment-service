@@ -49,11 +49,6 @@ public class PaymentServiceImpl implements PaymentService {
                 newPaymentDto.orderId(), newPaymentDto.userId(), newPaymentDto.paymentAmount());
 
         Payment payment = paymentMapper.toEntity(newPaymentDto);
-//
-//        if(paymentRepository.existsById(payment.getId())) {
-//            log.error("Payment with id: {} already exists", payment.getId());
-//            throw new ResourceCreationConflictException("Payment with id: " + payment.getId());
-//        }
 
         Status status = isBankResponseSucceed() ? Status.SUCCEED : Status.DECLINED;
         payment.setStatus(status);
