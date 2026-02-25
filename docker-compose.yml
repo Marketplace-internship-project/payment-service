@@ -102,11 +102,14 @@ services:
       - USER_SERVICE_URL=http://user-service:8080
       - ORDER_SERVICE_URL=http://order-service:8080
       - PAYMENT_SERVICE_URL=http://payment-service:8080
+      - MANAGEMENT_OTLP_TRACING_ENDPOINT=http://tempo:4318/v1/traces
     depends_on:
       - auth-service
       - user-service
       - order-service
       - payment-service
+      - tempo
+      - loki
     networks:
       - app-network
 
@@ -121,9 +124,15 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD:-adminpassword}
       - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - SERVER_FORWARD_HEADERS_STRATEGY=framework
+      - MANAGEMENT_OTLP_TRACING_ENDPOINT=http://tempo:4318/v1/traces
     depends_on:
       postgres-db:
         condition: service_healthy
+      loki:
+        condition: service_started
+      tempo:
+        condition: service_started
     networks:
       - app-network
 
@@ -139,11 +148,18 @@ services:
       - SPRING_DATA_REDIS_HOST=redis-cache
       - SPRING_DATA_REDIS_PORT=6379
       - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+      - AUTH_SERVICE_URL=http://auth-service:8080
+      - SERVER_FORWARD_HEADERS_STRATEGY=framework
+      - MANAGEMENT_OTLP_TRACING_ENDPOINT=http://tempo:4318/v1/traces
     depends_on:
       postgres-db:
         condition: service_healthy
       redis-cache:
         condition: service_healthy
+      loki:
+        condition: service_started
+      tempo:
+        condition: service_started
     networks:
       - app-network
 
@@ -161,11 +177,17 @@ services:
       - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
       - APPLICATION_CONFIG_USER_URL=http://user-service:8080
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SERVER_FORWARD_HEADERS_STRATEGY=framework
+      - MANAGEMENT_OTLP_TRACING_ENDPOINT=http://tempo:4318/v1/traces
     depends_on:
       postgres-db:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      loki:
+        condition: service_started
+      tempo:
+        condition: service_started
     networks:
       - app-network
 
@@ -179,11 +201,73 @@ services:
       - SPRING_DATA_MONGODB_URI=mongodb://mongo-db:27017/payment_db
       - EXTERNAL_BANK_API=${EXTERNAL_BANK_API}
       - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+      - SERVER_FORWARD_HEADERS_STRATEGY=framework
+      - MANAGEMENT_OTLP_TRACING_ENDPOINT=http://tempo:4318/v1/traces
     depends_on:
       mongo-db:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      loki:
+        condition: service_started
+      tempo:
+        condition: service_started
+    networks:
+      - app-network
+
+#===========OBSERVABILITY=======================
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./docker/prometheus.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - app-network
+
+  tempo:
+    image: grafana/tempo:latest
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./docker/tempo-local.yaml:/etc/tempo.yaml
+    ports:
+      - "4318:4318"  # OTLP HTTP receiver
+      - "3200:3200"  # Tempo query frontend
+    networks:
+      - app-network
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - app-network
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./docker/promtail.yaml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - ./docker/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
     networks:
       - app-network
 
