@@ -45,8 +45,8 @@ services:
   redis-cache:
     image: redis:7-alpine
     container_name: redis-cache
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
+    # ports:
+    #   - "${REDIS_PORT:-6379}:6379"
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
@@ -219,7 +219,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     volumes:
-      - ./docker/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - ./observability-configs/prometheus.yaml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
     networks:
@@ -229,7 +229,7 @@ services:
     image: grafana/tempo:2.7.0
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
-      - ./docker/tempo-local.yaml:/etc/tempo.yaml
+      - ./observability-configs/tempo-local.yaml:/etc/tempo.yaml
     ports:
       - "4318:4318"  # OTLP HTTP receiver
       - "3200:3200"  # Tempo query frontend
@@ -248,7 +248,7 @@ services:
     image: grafana/promtail:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./docker/promtail.yaml:/etc/promtail/config.yml
+      - ./observability-configs/promtail.yaml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       - loki
@@ -263,11 +263,27 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
     volumes:
-      - ./docker/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./observability-configs/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
     depends_on:
       - prometheus
       - loki
       - tempo
+    networks:
+      - app-network
+
+#==================== FRONT-END ======================
+
+
+  frontend:
+    image: node:24-alpine
+    container_name: react-frontend
+    working_dir: /app
+    volumes:
+      - ../mp-pages/frontend-app:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    command: npm run dev -- --host 0.0.0.0
     networks:
       - app-network
 
